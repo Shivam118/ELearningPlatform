@@ -121,7 +121,7 @@ export default function ManagerDashboard() {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-  
+
   const breadcrumbs = [
     <Link underline="hover" key="1" color="inherit" href="/">
       Radient Security
@@ -139,17 +139,32 @@ export default function ManagerDashboard() {
     navigate("/SuperAdmin");
   };
 
-  const [dataFiles, setDataFiles] = useState([]);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [dataEmpFiles, setDataEmpFiles] = useState([]);
+  const [dataHRFiles, setDataHRFiles] = useState([]);
+  const [selectedHRFile, setSelectedHRFile] = useState(null);
+  const [selectedEmpFile, setSelectedEmpFile] = useState(null);
 
-  const fileListRef = ref(storage, "Employees/");
-  const onUploadFiles = (e) => {
+  const EmpFileListRef = ref(storage, "Employees/");
+  const onUploadEmpFiles = (e) => {
     e.preventDefault();
-    if (selectedFile == null) return;
-    const fileRef = ref(storage, `Employees/${selectedFile.name + v4()}`);
-    console.log("FileReference: ", fileRef);
-    uploadBytes(fileRef, selectedFile)
-    .then(() => {
+    if (selectedEmpFile == null) return;
+    const EmpFileRef = ref(storage, `Employees/${selectedEmpFile.name + v4()}`);
+    console.log("FileReference: ", EmpFileRef);
+    uploadBytes(EmpFileRef, selectedEmpFile).then((snapshot) => {
+      getDownloadURL(snapshot.ref).then((url) => {
+        setDataEmpFiles((prev) => [...prev, url]);
+      });
+      toast.success("File Uploaded");
+    });
+  };
+
+  const HRFileListRef = ref(storage, "HR/");
+  const onUploadHRFiles = (e) => {
+    e.preventDefault();
+    if (selectedHRFile == null) return;
+    const HRFileRef = ref(storage, `HR/${selectedHRFile.name + v4()}`);
+    console.log("FileReference: ", HRFileRef);
+    uploadBytes(HRFileRef, selectedHRFile).then(() => {
       toast.success("File Uploaded");
     });
   };
@@ -163,14 +178,21 @@ export default function ManagerDashboard() {
       navigate("/SuperAdmin");
     }
 
-     listAll(fileListRef).then((response) => {
-        response.items.forEach((item) => {
-          getDownloadURL(item).then((url) => {
-            setDataFiles((prev) => [...prev, url]);
-          });
+    listAll(EmpFileListRef).then((response) => {
+      response.items.forEach((item) => {
+        getDownloadURL(item).then((url) => {
+          setDataEmpFiles((prev) => [...prev, url]);
         });
       });
+    });
 
+    listAll(HRFileListRef).then((response) => {
+      response.items.forEach((item) => {
+        getDownloadURL(item).then((url) => {
+          setDataHRFiles((prev) => [...prev, url]);
+        });
+      });
+    });
   }, []);
 
   return (
@@ -316,9 +338,12 @@ export default function ManagerDashboard() {
           ))}
         </List>
       </Drawer>
+
       <Box
         sx={{
           // width: '100%',
+          display: "flex",
+          flexDirection: "column",
           p: 4,
           pt: 2,
           mr: 6,
@@ -328,19 +353,56 @@ export default function ManagerDashboard() {
           backgroundColor: grey["50"],
         }}
       >
+        <strong>Employee Storage</strong>
+        <br />
+        <br />
         <label htmlFor="file">
           <input
             type="file"
             id="file"
             onChange={(e) => {
-              setSelectedFile(e.target.files[0]);
+              setSelectedEmpFile(e.target.files[0]);
             }}
           />
         </label>
-        <Button variant="contained" component="span" onClick={onUploadFiles}>
+        <br />
+        <Button variant="contained" component="span" onClick={onUploadEmpFiles}>
           Upload
         </Button>
       </Box>
+
+      <Box
+        sx={{
+          // width: '100%',
+          display: "flex",
+          flexDirection: "column",
+          p: 4,
+          pt: 2,
+          mr: 6,
+          mb: 2,
+          mt: 15,
+          ml: 15,
+          backgroundColor: grey["50"],
+        }}
+      >
+        <strong>HR Storage</strong>
+        <br />
+        <br />
+        <label htmlFor="file">
+          <input
+            type="file"
+            id="file"
+            onChange={(e) => {
+              setSelectedHRFile(e.target.files[0]);
+            }}
+          />
+        </label>
+        <br />
+        <Button variant="contained" component="span" onClick={onUploadHRFiles}>
+          Upload
+        </Button>
+      </Box>
+
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <DrawerHeader />
         <Box
@@ -365,9 +427,9 @@ export default function ManagerDashboard() {
           </Stack>
 
           <Grid container spacing={3}>
-            {/* {console.log(dataFiles)} */}
-            {dataFiles.length > 0 ? (
-              dataFiles.map((url) => {
+            {/* {console.log(dataEmpFiles)} */}
+            {dataEmpFiles.length > 0 ? (
+              dataEmpFiles.map((url) => {
                 // {FolderName.map((folder) => {
                 return (
                   <Grid item xs={6} md={4} lg={3}>
@@ -386,17 +448,77 @@ export default function ManagerDashboard() {
                       <Grid container spacing={3}>
                         <Grid
                           item
-                         
-                          
-
                           xs={12}
-                          style={{ display: "flex", flexDirection: "column" ,alignItems: "center" }}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                          }}
                         >
-                          <Link href={url} target="_blank" >
+                          <Link href={url} target="_blank">
                             <img
                               style={{ width: "100px", height: "100px" }}
                               src={url}
-                              Alt="Image Preview"
+                              Alt="Preview"
+                            />
+                          </Link>
+                          <hr />
+                          <span
+                            style={{
+                              width: "100%",
+                              whiteSpace: "nowrap",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {url}
+                          </span>
+                          {/* <span style={{ width: "70%" }}>{folder}</span> */}
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  </Grid>
+                );
+              })
+            ) : (
+              <h4>No Files To Show</h4>
+            )}
+          </Grid>
+          <br />
+          <Grid container spacing={3}>
+            {/* {console.log(dataEmpFiles)} */}
+            {dataHRFiles.length > 0 ? (
+              dataHRFiles.map((url) => {
+                // {FolderName.map((folder) => {
+                return (
+                  <Grid item xs={6} md={4} lg={3}>
+                    <Paper
+                      elevation={5}
+                      sx={{
+                        px: 2,
+                        py: 1,
+                        overflow: "hidden",
+                        "&:hover": {
+                          backgroundColor: grey["300"],
+                          cursor: "pointer",
+                        },
+                      }}
+                    >
+                      <Grid container spacing={3}>
+                        <Grid
+                          item
+                          xs={12}
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Link href={url} target="_blank">
+                            <img
+                              style={{ width: "100px", height: "100px" }}
+                              src={url}
+                              Alt="Preview"
                             />
                           </Link>
                           <hr />
