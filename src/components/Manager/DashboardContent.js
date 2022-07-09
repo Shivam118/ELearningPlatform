@@ -101,7 +101,7 @@ const Drawer = styled(MuiDrawer, {
   }),
 }));
 
-export default function ManagerDashboard() {
+export default function DashboardContent() {
   const navigate = useNavigate();
 
   const theme = useTheme();
@@ -147,22 +147,12 @@ export default function ManagerDashboard() {
   const [selectedHRFile, setSelectedHRFile] = useState(null);
   const [selectedEmpFile, setSelectedEmpFile] = useState(null);
 
-  useEffect(() => {
-    let authToken = sessionStorage.getItem("Auth Token");
-    if (authToken) {
-      navigate("/AdminDashboard");
-    }
-    if (!authToken) {
-      navigate("/SuperAdmin");
-    }
-  }, []);
-
   const [dashboardItem,setDashboardItem] = useState('');
-  
+
   const handleDashboard = (key) => {
     switch (key) {
       case "Upload":
-        return (<><UploadFiles /><ShowFiles /></>);
+        return <UploadFiles />;
       case "Show Files":
         return <ShowFiles />;
       default:
@@ -264,15 +254,14 @@ export default function ManagerDashboard() {
         </DrawerHeader>
         <Divider />
         <List>
-          {["Upload", "Show Files", "Send email", "Drafts"].map((text, index) => (
-            <ListItem key={text} disablePadding sx={{ display: "block" }}>
+            <ListItem disablePadding sx={{ display: "block" }} >
               <ListItemButton
                 sx={{
                   minHeight: 48,
                   justifyContent: open ? "initial" : "center",
                   px: 2.5,
                 }}
-                // onClick={setDashboardItem(text)}
+                // onClick={setDashboardItem("Upload")}
               >
                 <ListItemIcon
                   sx={{
@@ -281,12 +270,11 @@ export default function ManagerDashboard() {
                     justifyContent: "center",
                   }}
                 >
-                  {index % 2 === 0 ? <InboxIcon /> : <MailIcon />}
+                  <InboxIcon />
                 </ListItemIcon>
-                <ListItemText primary={text} sx={{ opacity: open ? 1 : 0 }} />
+                <ListItemText primary="Upload" sx={{ opacity: open ? 1 : 0 }} />
               </ListItemButton>
             </ListItem>
-          ))}
         </List>
         <Divider />
         <List>
